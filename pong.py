@@ -1,7 +1,6 @@
 import pygame
 import math
 import random
-import decimal
 
 pygame.init()
 
@@ -46,42 +45,68 @@ class paddle:
         if self.y <= 0:
             self.y = 0
 
+class ball:
+    def __init__(self, character):
+        self.character = pygame.image.load(character)
+        self.x = 384
+        self.y = 284
+        self.x_change = .4
+        self.y_change = .35
+    def player(self):
+        screen.blit(ball.character, (ball.x, ball.y))
+    def iscollision(self,padX, padY, pad1X, pad1Y):
+        if ball.iscollisionright(pad1X, pad1Y):
+            ball.x_change = -random.randint(30,60)/100
+            ball.y_change = random.randint(-100, 100) / 100
+        if ball.iscollisionleft(padX, padY):
+            ball.x_change = random.randint(30,60)/100
+            ball.y_change = random.randint(-100, 100) / 100
+    def iscollisionright(self, padX, padY):
+        if ((ball.y >= padY - 32 and ball.y <= padY + 100) and (ball.x + 32 > padX and ball.x < padX + 32)):
+            return True
+        else:
+            return False
+    def iscollisionleft(self, padX, padY):
+        if ((ball.y >= padY - 32 and ball.y <= padY + 100) and (ball.x > padX and ball.x < padX + 32)):
+            return True
+        else:
+            return False
+    def boundryXright(self):
+        if ball.x >= 800:
+            ball.x = 384
+            ball.y = 284
+            ball.x_change = -random.randint(40, 50) / 100
+            ball.y_change = random.randint(-30, 30) / 100
+            return True
+        else:
+            return False
+    def boundryXleft(self):
+        if ball.x + 32 <= 0:
+            ball.x = 384
+            ball.y = 284
+            ball.x_change = random.randint(40, 50) / 100
+            ball.y_change = random.randint(-30, 30) / 100
+            return True
+        else:
+            return False
+    def boundryY(self):
+        if ball.y <= 0 or ball.y+32 >= 600:
+            ball.y_change = ball.y_change * -1
+
 pad = paddle("ping.png", 25, 250)
 pad1 = paddle("ping.png", 750, 250)
-ball = paddle("ball.png", 384, 284)
+ball = ball("ball.png")
 score_right = 0
 score_left = 0
 font = pygame.font.Font("freesansbold.ttf", 48)
 
-#def collision():
 def show_score():
     scorer = font.render(str(score_right), True, (255,255,255))
     screen.blit(scorer, (500, 10))
     scorel = font.render(str(score_left), True, (255, 255, 255))
     screen.blit(scorel, (275, 10))
 
-def player():
-    screen.blit(ball.character, (ball.x, ball.y))
-
 running = True
-
-def iscollisionright(ball_x, ball_y, pad_x, pad_y):
-    if ((ball_y >= pad_y-32 and ball_y <= pad_y+100) and (ball_x+32 > pad_x and ball_x < pad_x+32)):
-        return True
-    else:
-        return False
-
-def iscollisionleft(ball_x, ball_y, pad_x, pad_y):
-    if ((ball_y >= pad_y-32 and ball_y <= pad_y+100) and (ball_x > pad_x and ball_x < pad_x+32)):
-        return True
-    else:
-        return False
-
-def iscollision():
-    if iscollisionright(ball.x, ball.y, pad1.x, pad1.y):
-        ball.x_change = -.5
-    if iscollisionleft(ball.x, ball.y, pad.x, pad.y):
-        ball.x_change = .5
 
 while running:
     screen.fill((0, 0, 0))
@@ -90,28 +115,15 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    if ball.x+32 >= 800:
-        ball.x = 384
-        ball.x_change = -random.randint(30,50)/100
-        score_left += 1
-    if ball.x <= 0:
-        ball.x = 384
-        ball.x_change = random.randint(30,50)/100
-        score_right += 1
-
-
-    if ball.x == pad1.x and ball.y == pad1.y:
-        ball.x_change = -.5
-
     ball.y += ball.y_change
     ball.x += ball.x_change
     show_score()
-    iscollision()
+    ball.iscollision(pad.x, pad.y, pad1.x, pad1.y)
     pad.keysl()
     pad1.keysr()
     pad.player()
     pad1.player()
-    player()
+    ball.player()
     pad.padY_boundry()
     pad1.padY_boundry()
     pad.y += pad.y_change
@@ -119,3 +131,8 @@ while running:
     pad.changeY()
     pad1.changeY()
     pygame.display.update()
+    ball.boundryY()
+    if ball.boundryXright():
+        score_left += 1
+    if ball.boundryXleft():
+        score_right += 1
